@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    html, body, .photobooth{
+      width:100%;
+      height:100%;
+      padding: 0;
+      margin: 0;
+    }
+    body{
+      background:red;
+    }
+    video{
+      display: block;
+      border-radius:100%;
+      margin: 3% auto 0;
+    }
+    canvas {
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+<div class="photobooth">
+  <video width="640" height="480" autoplay></video>
+  <canvas width="640" height="480"></canvas>
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/buzz.min.js"></script>
+<script>
+  var socket = io("http://localhost:1337")
+
+  socket.on("highfive", function () {
+    var dataUrl = snap()
+    console.log('highfive', dataUrl)
+    socket.emit('photo', dataUrl)
+  })
+
+  function stream () {
+    navigator.getUserMedia = navigator.getUserMedia || navigator.mozGetUserMedia || navigator.webkitGetUserMedia
+    window.URL = window.URL || window.mozURL || window.webkitURL
+
+    var video = document.querySelector("video")
+
+    navigator.getUserMedia({'video': true}, function (stream) {
+      video.src = window.opera ? stream : window.URL.createObjectURL(stream)
+      video.play()
+    }, function(er) {
+      console.error('Video capture error', er)
+    })
+  }
+
+  function snap () {
+    var video = document.querySelector("video")
+    var canvas = document.querySelector("canvas")
+    var context = canvas.getContext('2d')
+//    console.log(video.videoWidth, video.videoHeight)
+    context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight)
+    return canvas.toDataURL()
+  }
+
+  stream()
+</script>
+</body>
+</html>
